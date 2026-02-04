@@ -10,12 +10,13 @@ router.post("/", async (req, res) => {
   try {
     const { sessionId, message, conversationHistory = [] } = req.body;
 
-    if (!sessionId || !message) {
-      return res.status(400).json({
-        status: "error",
-        message: "Invalid request body"
-      });
-    }
+   if (!sessionId || !message) {
+  return res.json({
+    status: "success",
+    reply: "Hello"
+  });
+}
+
 
     const allMessages = [...conversationHistory, message];
 
