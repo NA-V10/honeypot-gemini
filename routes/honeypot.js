@@ -53,24 +53,19 @@ router.post("/", async (req, res) => {
       });
     }
 
-    res.json({
-      status: "success",
-      scamDetected,
-      reply,
-      engagementMetrics: {
-        engagementDurationSeconds: allMessages.length * 20,
-        totalMessagesExchanged: allMessages.length
-      },
-      extractedIntelligence: intelligence,
-      agentNotes
-    });
+   res.json({
+  status: "success",
+  reply
+});
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ status: "error", message: err.message });
   }
 });
 
-function mergeIntel(a, b) {
+function mergeIntel(a = {}, b = {})
+ {
   const merge = key => [...new Set([...(a[key] || []), ...(b[key] || [])])];
 
   return {

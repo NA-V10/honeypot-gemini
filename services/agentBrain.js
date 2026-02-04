@@ -3,41 +3,31 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash"
+  model: "gemini-1.5-flash" // faster + safer for hackathon
 });
 
 module.exports = async function agentBrain(messages) {
-  const conversation = messages
-    .map(m => `${m.sender}: ${m.text}`)
-    .join("\n");
-
-  const prompt = `
-You are a cautious middle-class Indian bank customer.
-Act natural and suspicious.
-Return ONLY JSON.
-
-Conversation:
-${conversation}
-`;
-
   try {
+    const conversation = messages
+      .map(m => `${m.sender}: ${m.text}`)
+      .join("\n");
+
     const result = await Promise.race([
-      model.generateContent(prompt),
+      model.generateContent(conversation),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Gemini timeout")), 8000) // 8s max
+        setTimeout(() => reject(new Error("timeout")), 8000)
       )
     ]);
 
     let text = result.response.text();
-
     text = text.replace(/```json|```/g, "").trim();
 
     return JSON.parse(text);
 
   } catch (err) {
-    console.log("Gemini fallback triggered:", err.message);
+    console.log("Gemini fallback:", err.message);
 
-    // 🚑 ALWAYS return instantly if Gemini fails
+    // ✅ ALWAYS return safe object (never undefined)
     return {
       reply: "Why are you asking for my details?",
       extractedIntelligence: {
@@ -47,7 +37,7 @@ ${conversation}
         phoneNumbers: [],
         suspiciousKeywords: []
       },
-      agentNotes: "Fallback used due to timeout"
+      agentNotes: "Fallback used"
     };
   }
 };
