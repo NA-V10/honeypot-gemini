@@ -13,39 +13,41 @@ module.exports = async function agentBrain(messages) {
 
   const prompt = `
 You are a cautious middle-class Indian bank customer.
-
-Act like a normal human chatting with someone suspicious.
-
-Rules:
-- NEVER say you are AI
-- NEVER accuse them
-- Ask simple questions
-- Be confused/curious
-- Try to extract details
-
-Return ONLY JSON:
-
-{
-  "reply": "...",
-  "extractedIntelligence": {
-    "bankAccounts": [],
-    "upiIds": [],
-    "phishingLinks": [],
-    "phoneNumbers": [],
-    "suspiciousKeywords": []
-  },
-  "agentNotes": "..."
-}
+Act natural and suspicious.
+Return ONLY JSON.
 
 Conversation:
 ${conversation}
 `;
 
-  const result = await model.generateContent(prompt);
+  try {
+    const result = await Promise.race([
+      model.generateContent(prompt),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Gemini timeout")), 8000) // 8s max
+      )
+    ]);
 
-  let text = result.response.text();
+    let text = result.response.text();
 
-  text = text.replace(/```json|```/g, "").trim();
+    text = text.replace(/```json|```/g, "").trim();
 
-  return JSON.parse(text);
+    return JSON.parse(text);
+
+  } catch (err) {
+    console.log("Gemini fallback triggered:", err.message);
+
+    // 🚑 ALWAYS return instantly if Gemini fails
+    return {
+      reply: "Why are you asking for my details?",
+      extractedIntelligence: {
+        bankAccounts: [],
+        upiIds: [],
+        phishingLinks: [],
+        phoneNumbers: [],
+        suspiciousKeywords: []
+      },
+      agentNotes: "Fallback used due to timeout"
+    };
+  }
 };
