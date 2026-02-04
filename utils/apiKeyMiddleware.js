@@ -10,6 +10,7 @@ module.exports = function (req, res, next) {
       message: "Invalid API key"
     });
   }
+console.log("Incoming headers:", req.headers);
 
   next();
 };
