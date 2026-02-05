@@ -10,13 +10,12 @@ router.post("/", async (req, res) => {
   try {
     const { sessionId, message, conversationHistory = [] } = req.body;
 
-   if (!sessionId || !message) {
-  return res.json({
-    status: "success",
-    reply: "Hello"
-  });
-}
-
+    if (!sessionId || !message) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid request body"
+      });
+    }
 
     const allMessages = [...conversationHistory, message];
 
@@ -54,19 +53,24 @@ router.post("/", async (req, res) => {
       });
     }
 
-   res.json({
-  status: "success",
-  reply
-});
-
+    res.json({
+      status: "success",
+      scamDetected,
+      reply,
+      engagementMetrics: {
+        engagementDurationSeconds: allMessages.length * 20,
+        totalMessagesExchanged: allMessages.length
+      },
+      extractedIntelligence: intelligence,
+      agentNotes
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ status: "error", message: err.message });
   }
 });
 
-function mergeIntel(a = {}, b = {})
- {
+function mergeIntel(a, b) {
   const merge = key => [...new Set([...(a[key] || []), ...(b[key] || [])])];
 
   return {

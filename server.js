@@ -8,8 +8,7 @@ const app = express();
 app.use(express.json({ limit: "10mb" }));
 
 // protect API
-app.use("/api", apiKeyMiddleware);
-
+app.use(apiKeyMiddleware);
 
 app.use("/api/honeypot", honeypotRoute);
 

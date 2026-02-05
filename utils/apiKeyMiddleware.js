@@ -1,8 +1,5 @@
 module.exports = function (req, res, next) {
-  const key =
-    req.headers["x-api-key"] ||
-    req.headers["api-key"] ||
-    req.headers["authorization"]?.replace("Bearer ", "");
+  const key = req.headers["x-api-key"];
 
   if (!key || key !== process.env.API_KEY) {
     return res.status(401).json({
@@ -10,7 +7,6 @@ module.exports = function (req, res, next) {
       message: "Invalid API key"
     });
   }
-console.log("Incoming headers:", req.headers);
 
   next();
 };
